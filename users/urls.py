@@ -1,6 +1,5 @@
 from django.urls import path, include
-from .views import SendInviteView, ConfirmInviteView
-
+from .views import SendInviteView, ConfirmInvitePage
 
 urlpatterns = [
     path('invite/send/',
@@ -8,10 +7,11 @@ urlpatterns = [
          name='send_invite'
          ),
 
-    path('invite/confirm/<uuid:token>/',
-         ConfirmInviteView.as_view(),
-         name='confirm_invite'
+    path('invite/confirm_page/<uuid:token>/',
+         ConfirmInvitePage.as_view(),
+         name='confirm_invite_page'
          ),
+
     path(
         "auth/",
         include("djoser.urls"

@@ -70,7 +70,7 @@ class UserAdmin(admin.ModelAdmin, AuditLogMixin):
                 expires_at=timezone.now() + timezone.timedelta(days=3)
             )
 
-            invite_link = f"http://localhost:8000/users/invite/confirm/{invite.invite_token}/"
+            invite_link = f"http://localhost:8000/users/invite/confirm_page/{invite.invite_token}/"
             html_content = render_to_string("emails/invite_user.html", {
                 "name": obj.name or "пользователь",
                 "invite_link": invite_link

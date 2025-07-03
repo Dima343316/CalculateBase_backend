@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Подтверждение приглашения</title>
+    <style>
+        body {
+            background: #ffffff; /* Белый фон */
+            font-family: Arial, sans-serif;
+            color: #000000; /* Чёрный текст */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
+        }
+        h1 {
+            text-align: center;
+            color: #000000;
+            margin-bottom: 20px;
+        }
+        form input[type="password"] {
+            width: 100%;
+            padding: 12px 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        form button {
+            width: 100%;
+            background-color: #000000;
+            border: none;
+            color: white;
+            font-size: 18px;
+            padding: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        form button:hover {
+            background-color: #333333;
+        }
+        .messages {
+            margin-bottom: 15px;
+            color: red;
+            font-weight: 600;
+        }
+        .success {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Подтверждение приглашения</h1>
+
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <p class="{{ message.tags }}">{{ message }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" action="">
+            {% csrf_token %}
+            <input type="password" name="password" placeholder="Введите пароль" required minlength="8" />
+            <button type="submit">Активировать аккаунт</button>
+        </form>
+    </div>
+</body>
+</html>

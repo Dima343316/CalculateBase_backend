@@ -1,19 +1,20 @@
-from django.contrib.auth.password_validation import validate_password
-from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
-from rest_framework import status
 from rest_framework.permissions import AllowAny
+from urllib.parse import urlencode
+from .authentication import CsrfExemptSessionAuthentication
+from .models import User, AuditLog
+import uuid
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views import View
+from django.contrib import messages
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.utils import timezone
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.core.exceptions import ValidationError as DjangoValidationError
-
-from .authentication import CsrfExemptSessionAuthentication
+from rest_framework import status
 from .mixins import AuditLogMixin
-from .models import User, UserInvite, AuditLog
-import uuid
-
+from django.contrib.auth.password_validation import validate_password
+from rest_framework_simplejwt.tokens import RefreshToken
 from .models import UserInvite
 from .tasks import send_email_celery  # импортируем нашу задачу
 
@@ -68,26 +69,32 @@ class SendInviteView(APIView):
 
 
 
+class ConfirmInvitePage(View, AuditLogMixin):
+    template_name = "confirm_invite_page.html"
 
-class ConfirmInviteView(APIView, AuditLogMixin):
-    authentication_classes = [CsrfExemptSessionAuthentication]
-    permission_classes = [AllowAny]
+    def get(self, request, token):
+        invite = get_object_or_404(UserInvite, invite_token=token, used=False)
+        if invite.is_expired():
+            return render(request, "invite_expired.html")
+        return render(request, self.template_name, {"token": token})
 
     def post(self, request, token):
-        password = request.data.get("password")
+        password = request.POST.get("password")
+        invite = get_object_or_404(UserInvite, invite_token=token, used=False)
+
+        if invite.is_expired():
+            messages.error(request, "Срок действия токена истёк")
+            return redirect("confirm_invite_page", token=token)
 
         if not password:
-            return Response({"error": "Пароль обязателен"}, status=status.HTTP_400_BAD_REQUEST)
+            messages.error(request, "Пароль обязателен")
+            return redirect("confirm_invite_page", token=token)
 
         try:
             validate_password(password)
         except DjangoValidationError as e:
-            return Response({"error": e.messages}, status=status.HTTP_400_BAD_REQUEST)
-
-        invite = get_object_or_404(UserInvite, invite_token=token, used=False)
-
-        if invite.is_expired():
-            return Response({"error": "Срок действия токена истёк"}, status=status.HTTP_400_BAD_REQUEST)
+            messages.error(request, e.messages[0])
+            return redirect("confirm_invite_page", token=token)
 
         user = invite.user
         user.set_password(password)
@@ -105,16 +112,17 @@ class ConfirmInviteView(APIView, AuditLogMixin):
             changes={"set_password": True, "is_active": True}
         )
 
-        refresh = RefreshToken.for_user(user)
 
-        return Response({
-            "status": "user_activated",
-            "access": str(refresh.access_token),
-            "refresh": str(refresh),
-            "user": {
-                "id": str(user.id),
-                "email": user.email,
-                "name": user.name,
-                "role": user.role,
-            }
-        }, status=status.HTTP_200_OK)
+        refresh = RefreshToken.for_user(user)
+        access_token = str(refresh.access_token)
+        refresh_token = str(refresh)
+
+        frontend_url = "http://localhost:3000/login-success"
+        params = urlencode({
+            "access": access_token,
+            "refresh": refresh_token,
+        })
+
+        return redirect(f"{frontend_url}?{params}")
+
+
