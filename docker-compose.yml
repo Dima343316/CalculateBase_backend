@@ -16,7 +16,7 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_NAME=${POSTGRES_NAME}
     volumes:
-      - ./:/GamesCripth
+      - ./:/CalculateBase_backend
     depends_on:
       - db
       - redis
