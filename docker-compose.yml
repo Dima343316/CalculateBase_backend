@@ -1,0 +1,50 @@
+version: "3.9"
+
+networks:
+  app-net:
+
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - REDIS_HOST=${REDIS_HOST}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_NAME=${POSTGRES_NAME}
+    volumes:
+      - ./:/GamesCripth
+    depends_on:
+      - db
+      - redis
+      - celery
+    networks:
+      - app-net
+
+  db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_NAME}
+    networks:
+      - app-net
+
+  redis:
+    image: redis:latest
+    restart: always
+    networks:
+      - app-net
+
+  celery:
+    build: .
+    command: celery -A CalculateBase_backend worker -l info
+    depends_on:
+      - redis
+      - db
+    networks:
+      - app-net

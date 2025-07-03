@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход через Telegram</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0088cc, #5ec7f7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .login-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+        .login-container h1 {
+            font-size: 24px;
+            color: #0088cc;
+            margin-bottom: 10px;
+        }
+        .login-container p {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .telegram-logo {
+            width: 80px;
+            margin: 10px auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <img src="https://telegram.org/img/t_logo.png" alt="Telegram Logo" class="telegram-logo">
+        <h1>Вход через Telegram</h1>
+        <p>Для продолжения, пожалуйста, войдите через ваш аккаунт Telegram.</p>
+
+        {% autoescape off %}
+        {{ telegram_login_widget }}
+        {% endautoescape %}
+    </div>
+</body>
+</html>
